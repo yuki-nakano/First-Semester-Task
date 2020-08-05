@@ -582,3 +582,6 @@ GameProgramming/倉庫番/Project/dxlib/Release/zlib_vs2015_x86.lib
 GameProgramming/倉庫番/Project/dxlib/Release/zlib_x64.lib
 *.filters
 *.user
+*.db-shm
+*.db-wal
+*.opendb
