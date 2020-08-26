@@ -44,7 +44,7 @@
 // グローバル変数
 // ==============================
 //※※		// 横:STAGE_WIDTH、縦:STAGE_HEIGHTのint型２次元配列 map を宣言
-int map[STAGE_WIDTH][STAGE_HEIGHT];
+int map[STAGE_HEIGHT][STAGE_WIDTH];
 
 // ==============================
 // 関数プロトタイプ宣言
@@ -54,7 +54,7 @@ int map[STAGE_WIDTH][STAGE_HEIGHT];
 bool IsPutStone(int x, int y);
 // 勝者が居るかを調べる
 //※※ // int型の戻り値を持つCheckWinner関数を宣言
-int CheckWinner();
+int CheckWinner(int turn);
 
 // ==============================
 // Main関数
@@ -89,11 +89,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// mapの初期化
 	//※※　二次元配列mapの全要素を STONE_MAX で初期化する
-	for (int i = 0; i < STAGE_HEIGHT; i++)
+	for (int Y = 0; Y < STAGE_HEIGHT; Y++)
 	{
-		for (int j = 0; j < STAGE_WIDTH; j++)
+		for (int X = 0; X < STAGE_WIDTH; X++)
 		{
-			map[j][i] = STONE_MAX;
+			map[Y][X] = STONE_MAX;
 		}
 	}
 
@@ -111,7 +111,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// ----------------------------------------------------
 		InputUpdate();			// 入力処理更新関数の呼び出し
 		//※※ winner に勝利者情報を代入	// 勝利者のチェック
-		winner = CheckWinner();
+		winner = CheckWinner(turn);
 
 		// --- 入力状況をチェックして、適切な処理を行う
 		// 決着がついてない時だけ入力を受け付けるように if文 でチェックする
@@ -160,8 +160,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					{
 						map[pos_y][pos_x] = STONE_BLACK;
 					}
-					turn++;
-					turn %= 2;
+					winner = CheckWinner(turn);
+					if (winner == WINNER_NON)
+					{
+						turn++;
+						turn %= 2;
+					}
 				}
 			}
 		}
@@ -222,12 +226,13 @@ bool IsPutStone( int x, int y )
 // ==============================
 // 勝者が居るかを調べる
 // ==============================
-int CheckWinner()
+int CheckWinner(int turn)
 {
 	//※※　以下の処理を実装する
 	// 縦、横、斜めが同じ石かどうかを調べる
 	// STONE_WHITE, STONE_BLACK, STONE_MAXを上手く使いましょう
 	
+	/*
 	for (int Y = 0; Y < STAGE_WIDTH; Y++)
 	{
 		if (map[Y][0] == STONE_WHITE && map[Y][1] == STONE_WHITE && map[Y][2] == STONE_WHITE)
@@ -250,26 +255,84 @@ int CheckWinner()
 			return WINNER_BLACK;
 		}
 	}
+	*/
 	
-	/*
-	for (int Y = 0; Y < STAGE_HEIGHT; Y++)
+	int counter_Slant_Down = 0;
+	int counter_Slant_Up = 0;
+	for (int i = 0; i < STAGE_HEIGHT; i++)
 	{
-		int counter = 0;
-		for (intX = 0; X < STAGE_WIDTH; X++)
+		int counter_X = 0;
+		int counter_Y = 0;
+		for (int j = 0; j < STAGE_WIDTH; j++)
 		{
-			if (map[Y][X] != STONE_BLACK)
+			if (map[j][i] != turn)
 			{
-				break;
+				counter_X--;
 			}
-			counter++;
-			if (counter == STAGE_HEIGHT)
+			counter_X++;
+			if (counter_X == STAGE_HEIGHT)
+			{
+				if (turn == STONE_BLACK)
+				{
+					return WINNER_BLACK;
+				}
+				else if (turn == STONE_WHITE)
+				{
+					return WINNER_WHITE;
+				}
+			}
+			if (map[i][j] != turn)
+			{
+				counter_Y--;
+			}
+			counter_Y++;
+			if (counter_Y == STAGE_HEIGHT)
+			{
+				if (turn == STONE_BLACK)
+				{
+					return WINNER_BLACK;
+				}
+				else if (turn == STONE_WHITE)
+				{
+					return WINNER_WHITE;
+				}
+			}
+		}
+		if (map[i][i] == turn)
+		{
+			counter_Slant_Down++;
+		}
+		if (counter_Slant_Down == STAGE_HEIGHT)
+		{
+			if (turn == STONE_BLACK)
 			{
 				return WINNER_BLACK;
 			}
+			else if (turn == STONE_WHITE)
+			{
+				return WINNER_WHITE;
+			}
+		}
+		if (map[i][STAGE_HEIGHT - i - 1] == turn)
+		{
+			counter_Slant_Up++;
+		}
+		if (counter_Slant_Up == STAGE_HEIGHT)
+		{
+			if (turn == STONE_BLACK)
+			{
+				return WINNER_BLACK;
+			}
+			else if (turn == STONE_WHITE)
+			{
+				return WINNER_WHITE;
+			}
 		}
 	}
-	*/
 
+
+
+	/*
 	if (map[0][0] == STONE_BLACK && map[1][1] == STONE_BLACK && map[2][2] == STONE_BLACK)
 	{
 		return WINNER_BLACK;
@@ -286,6 +349,7 @@ int CheckWinner()
 	{
 		return WINNER_WHITE;
 	}
+	*/
 
 	// もし、まだ揃っていなかったら、盤面に置かれている石の数を調べる
 	// 全てのマスに石が置かれていたら引き分け
